@@ -4,7 +4,8 @@
   "description": "Learning node express and mongodb",
   "main": "index.ts",
   "scripts": {
-    "start": "nodemon"
+    "start": "nodemon",
+    "debug": "ndb src/server.ts"
   },
   "author": "",
   "license": "ISC",
