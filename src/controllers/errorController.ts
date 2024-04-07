@@ -24,7 +24,7 @@ const sendErrorProd = (err: AnyError, res: express.Response) => {
     // Programming or other unknown error: don't leak error details
   } else {
     // 1) Log error
-    // console.error('ERROR 💥', err);
+    console.error('ERROR 💥', err);
 
     // 2) Send generic message
     res.status(500).json({
@@ -60,6 +60,12 @@ const handleValidationErrorDB = (err: AnyError) => {
 
   return new AppError(message, 400);
 };
+
+const handleJWTError = () =>
+  new AppError('Invalid token. Please log in again', 401);
+const handleJWTExpiredError = () =>
+  new AppError('Your token has expired! Please log in again.', 401);
+
 export const handleError = (
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -74,16 +80,27 @@ export const handleError = (
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === 'production') {
-    let error = { ...err };
+    let error = { ...err, message: err?.message };
 
     if (err?.code === 11000) {
       error = handleDuplicatedFieldsDB(error);
     }
-    if (err.name === 'CastError') {
-      error = handleCastErrorDB(error);
-    }
-    if (err.name === 'ValidationError') {
-      error = handleValidationErrorDB(error);
+    switch (err.name) {
+      case 'CastError':
+        error = handleCastErrorDB(error);
+        break;
+      case 'ValidationError': {
+        error = handleValidationErrorDB(error);
+        break;
+      }
+      case 'JsonWebTokenError': {
+        error = handleJWTError();
+        break;
+      }
+      case 'TokenExpiredError': {
+        error = handleJWTExpiredError();
+        break;
+      }
     }
 
     sendErrorProd(error, res);

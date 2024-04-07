@@ -5,15 +5,58 @@ import userRouter from './routes/userRoutes';
 import tourRouter from './routes/tourRoutes';
 import AppError from './utils/appError';
 import { handleError } from './controllers/errorController';
+import cookieParser from 'cookie-parser';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import mongoSanitize from 'express-mongo-sanitize';
+// @ts-ignore
+import * as xss from 'xss-clean';
+import hpp from 'hpp';
 
 const app = express();
+
+// Set security HTTP headers
+app.use(helmet());
+
 dotenv.config({ path: './.env' });
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
-app.use(express.json());
+
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many requests from this IP, please try again in an hour!',
+});
+app.use('/api', limiter);
+app.use(
+  express.json({
+    limit: '10kb',
+  }),
+);
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+// Data sanitization against XSS
+app.use(xss());
+
+//prevent parameter pollution
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingsQuantity',
+      'maxGroupSize',
+      'difficulty',
+      'ratingsAverage',
+      'price',
+    ],
+  }),
+);
+
 app.use(express.static(`${__dirname}/../public`));
+app.use(cookieParser());
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
