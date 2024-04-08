@@ -9,14 +9,17 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
-// @ts-ignore
-import * as xss from 'xss-clean';
 import hpp from 'hpp';
+import cors from 'cors';
+
+const xss = require('xss-clean')
 
 const app = express();
 
 // Set security HTTP headers
 app.use(helmet());
+
+app.use(cors());
 
 dotenv.config({ path: './.env' });
 
