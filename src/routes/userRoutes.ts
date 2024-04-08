@@ -11,18 +11,19 @@ import {
 import {
   forgotPassword,
   login,
-  logout,
+  logout, profile,
   protect,
   resetPassword,
   signup,
-  updatePassword,
-} from '../controllers/authController';
+  updatePassword
+} from "../controllers/authController";
 
 const userRouter = express.Router();
 
 userRouter.post('/signup', signup);
 userRouter.post('/login', login);
 userRouter.get('/logout', logout);
+userRouter.get('/profile', protect, profile)
 
 userRouter.post('/forgotPassword', forgotPassword);
 userRouter.patch('/resetPassword/:token', resetPassword);

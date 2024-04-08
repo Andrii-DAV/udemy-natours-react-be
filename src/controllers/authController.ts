@@ -219,3 +219,13 @@ export const updatePassword = catchAsync(async (req, res, next) => {
 
   createSendToken(user, 200, res);
 });
+
+
+export const profile = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user._id);
+
+  res.status(200).json({
+    status: 'success',
+    data: user
+  })
+})
