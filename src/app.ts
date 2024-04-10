@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import userRouter from './routes/userRoutes';
 import tourRouter from './routes/tourRoutes';
+import reviewRouter from './routes/reviewRoutes';
 import AppError from './utils/appError';
 import { handleError } from './controllers/errorController';
 import cookieParser from 'cookie-parser';
@@ -12,7 +13,8 @@ import mongoSanitize from 'express-mongo-sanitize';
 import hpp from 'hpp';
 import cors from 'cors';
 
-const xss = require('xss-clean')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const xss = require('xss-clean');
 
 const app = express();
 
@@ -63,6 +65,7 @@ app.use(cookieParser());
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.url}`, 404));
 });

@@ -10,10 +10,9 @@ import {
   getMonthlyPlan,
 } from '../controllers/tourController';
 import { protect, restrictTo } from '../controllers/authController';
+import reviewRouter from './reviewRoutes';
 
 const tourRouter = express.Router();
-
-// tourRouter.param('id', findTour);
 
 tourRouter.route('/monthly-plan/:year').get(getMonthlyPlan);
 tourRouter.route('/top-5-cheap-tours').get(aliasTopTours, getAllTours);
@@ -25,5 +24,7 @@ tourRouter
   .get(getTour)
   .patch(updateTour)
   .delete(protect, restrictTo('admin', 'lead-guide'), deleteTour);
+
+tourRouter.use('/:tourId/reviews', reviewRouter);
 
 export default tourRouter;

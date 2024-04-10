@@ -1,43 +1,15 @@
-import { Request } from '../types/Request';
-import express from 'express';
 import { catchAsync } from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import User from '../models/userModel';
 import { filteredPropsOfObj } from '../utils/common';
+import { deleteOne, getAll, getOne, updateOne } from './handlerFactory';
 
-export const getAllUsers = (req: Request, res: express.Response) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'Not yet defined',
-  });
-};
-export const createUser = (req: Request, res: express.Response) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'Not yet defined',
-  });
-};
-export const getUser = (req: Request, res: express.Response) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'Not yet defined',
-  });
-};
-export const updateUser = (req: Request, res: express.Response) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'Not yet defined',
-  });
-};
-export const deleteUser = (req: Request, res: express.Response) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'Not yet defined',
-  });
-};
+export const getAllUsers = getAll(User);
+export const getUser = getOne(User);
+export const updateUser = updateOne(User);
+export const deleteUser = deleteOne(User);
 
 export const updateCurrentUser = catchAsync(async (req, res, next) => {
-  // 1) Create error if user POST password data
   if (req.body.password || req.body.passwordConfirm) {
     return next(
       new AppError(
@@ -47,7 +19,6 @@ export const updateCurrentUser = catchAsync(async (req, res, next) => {
     );
   }
 
-  // 2) Update user document
   const filteredBody = filteredPropsOfObj(req.body, 'name', 'email');
   const updated = await User.findByIdAndUpdate(req.user._id, filteredBody, {
     new: true,
