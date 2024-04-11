@@ -4,6 +4,7 @@ import AppError from '../utils/appError';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type AnyError = any;
+
 const sendErrorDev = (err: AnyError, res: express.Response) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -23,10 +24,7 @@ const sendErrorProd = (err: AnyError, res: express.Response) => {
 
     // Programming or other unknown error: don't leak error details
   } else {
-    // 1) Log error
     console.error('ERROR 💥', err);
-
-    // 2) Send generic message
     res.status(500).json({
       status: 'error',
       message: 'Something went very wrong!',
@@ -46,8 +44,7 @@ const handleDuplicatedFieldsDB = (err: AnyError) => {
 
   return new AppError(message, 400);
 };
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+
 const handleValidationErrorDB = (err: AnyError) => {
   const errors = Object.values(err?.errors)
     ?.map((e) => {
@@ -67,8 +64,6 @@ const handleJWTExpiredError = () =>
   new AppError('Your token has expired! Please log in again.', 401);
 
 export const handleError = (
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   err: AnyError,
   req: express.Request,
   res: express.Response,

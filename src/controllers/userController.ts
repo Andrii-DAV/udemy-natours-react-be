@@ -8,6 +8,7 @@ export const getAllUsers = getAll(User);
 export const getUser = getOne(User);
 export const updateUser = updateOne(User);
 export const deleteUser = deleteOne(User);
+export const getCurrentUser = getOne(User);
 
 export const updateCurrentUser = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {
@@ -29,7 +30,6 @@ export const updateCurrentUser = catchAsync(async (req, res, next) => {
     data: updated,
   });
 });
-
 export const deleteCurrentUser = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user._id, {
     active: false,
@@ -39,4 +39,10 @@ export const deleteCurrentUser = catchAsync(async (req, res, next) => {
     status: 'success',
     data: null,
   });
+});
+
+export const setCurrentUserId = catchAsync(async (req, res, next) => {
+  const { _id } = req.user;
+  req.params.id = _id.toString();
+  next();
 });
