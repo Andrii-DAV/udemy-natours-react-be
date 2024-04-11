@@ -11,15 +11,17 @@ import { protect, restrictTo } from '../controllers/authController';
 
 const reviewRouter = express.Router({ mergeParams: true });
 
+reviewRouter.use(protect);
+
 reviewRouter
   .route('/')
   .get(getReviews)
-  .post(protect, restrictTo('user'), setTourUserIds, createReview);
+  .post(restrictTo('user'), setTourUserIds, createReview);
 
 reviewRouter
   .route('/:id')
-  .get(protect, getReview)
-  .delete(protect, deleteReview)
-  .patch(protect, updateReview);
+  .get(getReview)
+  .delete(restrictTo('user', 'admin'), deleteReview)
+  .patch(restrictTo('user', 'admin'), updateReview);
 
 export default reviewRouter;
