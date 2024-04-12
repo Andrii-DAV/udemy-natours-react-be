@@ -1,9 +1,9 @@
 import { Query as MongooseQuery, FilterQuery } from 'mongoose';
 
 import { Query as ExpressCoreQuery } from 'express-serve-static-core';
-import { type TourParams } from '../models/tourModel';
+import { type ITour } from '../models/tourModel';
 
-type Query = MongooseQuery<TourParams[], TourParams>;
+type Query = MongooseQuery<ITour[], ITour>;
 type Filters = FilterQuery<unknown>;
 class APIFeatures {
   public query: Query;

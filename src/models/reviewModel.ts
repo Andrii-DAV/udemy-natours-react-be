@@ -1,4 +1,13 @@
 import mongoose from 'mongoose';
+import Tour from './tourModel';
+
+interface IReview {
+  review: string;
+  rating: number;
+  createdAt: Date;
+  tour: mongoose.Schema.Types.ObjectId;
+  user: mongoose.Schema.Types.ObjectId;
+}
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -32,16 +41,58 @@ const reviewSchema = new mongoose.Schema(
   },
 );
 
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 reviewSchema.pre(/^find/, function (next) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
   this.populate({ path: 'user', select: 'name photo' });
-  //   .populate({
-  //   path: 'tour',
-  //   select: 'name ',
-  // });
 
   next();
 });
+
+reviewSchema.statics.calcAverageRatings = async function (
+  tourId: mongoose.Schema.Types.ObjectId,
+) {
+  const stats = await this.aggregate([
+    {
+      $match: { tour: tourId },
+    },
+    {
+      $group: {
+        _id: '$tour',
+        nRating: { $sum: 1 },
+        avgRating: {
+          $avg: '$rating',
+        },
+      },
+    },
+  ]);
+
+  await Tour.findByIdAndUpdate(tourId, {
+    ratingsQuantity: stats.length > 0 ? stats[0].nRating : 0,
+    ratingsAverage: stats.length > 0 ? stats[0].avgRating : 4.5,
+  });
+};
+
+reviewSchema.post('save', function () {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  this.constructor.calcAverageRatings(this.tour);
+});
+
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  this.r = await this.clone().findOne();
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function () {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  await this.r.constructor.calcAverageRatings(this.r.tour);
+});
+
 const Review = mongoose.model('Review', reviewSchema);
 export default Review;

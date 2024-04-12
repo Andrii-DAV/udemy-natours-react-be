@@ -20,6 +20,7 @@ export interface IUser {
 
   //methods
   createPasswordResetToken: () => string;
+  // eslint-disable-next-line no-unused-vars
   correctPassword: (candidatePassword: string, userPassword: string) => boolean;
 }
 

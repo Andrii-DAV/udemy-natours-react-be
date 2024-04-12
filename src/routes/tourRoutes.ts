@@ -8,11 +8,18 @@ import {
   aliasTopTours,
   getTourStats,
   getMonthlyPlan,
+  getToursWithin,
+  getDistances,
 } from '../controllers/tourController';
 import { protect, restrictTo } from '../controllers/authController';
 import reviewRouter from './reviewRoutes';
 
 const tourRouter = express.Router();
+
+tourRouter
+  .route('/tours-within/:distance/center/:latlng/unit/:unit')
+  .get(getToursWithin);
+tourRouter.route('/distance/:latlng/unit/:unit').get(getDistances);
 
 tourRouter
   .route('/monthly-plan/:year')
