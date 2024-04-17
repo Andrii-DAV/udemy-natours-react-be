@@ -2,7 +2,6 @@ import User, { IUser, type MongooseId, UserRole } from '../models/userModel';
 import { catchAsync } from '../utils/catchAsync';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import AppError from '../utils/appError';
-import { Types } from 'mongoose';
 import { sendEmail } from '../utils/email';
 import * as crypto from 'crypto';
 import express from 'express';
@@ -41,7 +40,7 @@ const createSendToken = (
         Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
     ),
     secure: process.env.NODE_ENV !== 'development',
-    httpOnly: true, //recieve - store - send automatically
+    httpOnly: true, //receive - store - send automatically
   });
 
   user.password = undefined;
@@ -67,6 +66,7 @@ export const signup = catchAsync(async (req, res, next) => {
 
 export const login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
     return next(new AppError('Please provide email and password', 400));
   }
@@ -79,8 +79,8 @@ export const login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-export const logout = catchAsync(async (req, res, next) => {
-  res.cookie('jwt', null, {
+export const logout = catchAsync(async (req, res) => {
+  res.cookie('jwt', '', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
   });
@@ -90,8 +90,26 @@ export const logout = catchAsync(async (req, res, next) => {
   });
 });
 
+export const isLoggedIn = catchAsync(async (req, res, next) => {
+  if (!req.cookies.jwt) {
+    return next();
+  }
+
+  //@ts-ignore
+  const { id, iat } = await jwtVerify(req.cookies.jwt, process.env.JWT_SECRET);
+
+  const foundUser = await User.findById(id);
+
+  if (!foundUser) return next();
+
+  //@ts-ignore
+  if (foundUser.changedPasswordAfter(iat)) return next();
+
+  res.locals.user = foundUser;
+  next();
+});
+
 export const protect = catchAsync(async (req, res, next) => {
-  // 1. Getting token
   const { headers } = req;
   let token;
   if (headers.authorization && headers.authorization.startsWith('Bearer')) {
@@ -103,11 +121,9 @@ export const protect = catchAsync(async (req, res, next) => {
   if (!token) {
     return next(new AppError('Please log in to get access.', 401));
   }
-  // 2. Verification token
-  //@ts-ignore
+  // @ts-ignore
   const { id, iat } = await jwtVerify(token, process.env.JWT_SECRET);
 
-  // 3. Check if user still exists
   const foundUser = await User.findById(id);
   if (!foundUser) {
     return next(
@@ -118,12 +134,12 @@ export const protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  // 4. Check if user has changed their password after token was issued
   //@ts-ignore
   if (foundUser.changedPasswordAfter(iat)) {
     return next(new AppError('User recently changed password!', 401));
   }
   req.user = foundUser;
+  res.locals.user = foundUser;
   next();
 });
 

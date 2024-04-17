@@ -29,12 +29,14 @@ userRouter.post('/forgotPassword', forgotPassword);
 userRouter.patch('/resetPassword/:token', resetPassword);
 
 userRouter.use(protect);
+
 userRouter.patch('/updatePassword', updatePassword);
 userRouter.get('/profile', setCurrentUserId, getCurrentUser);
 userRouter.route('/updateCurrentUser').patch(updateCurrentUser);
 userRouter.route('/deleteCurrentUser').delete(deleteCurrentUser);
 
 userRouter.use(restrictTo('admin'));
+
 userRouter.route('/').get(getAllUsers);
 userRouter.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
 

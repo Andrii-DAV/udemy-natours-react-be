@@ -141,15 +141,6 @@ tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
-//Embedding
-// tourSchema.pre('save', async function (next) {
-//   const guidesPromises = this.guides.map(
-//     async ({ id }) => await User.findById(id),
-//   );
-//   this.guides = await Promise.all(guidesPromises);
-//   next();
-// });
-//Query middleware
 tourSchema.pre(/^find/, function (next) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
@@ -157,24 +148,16 @@ tourSchema.pre(/^find/, function (next) {
     path: 'guides',
     select: '-__v -passwordChangedAt',
   });
+
   next();
 });
+
 tourSchema.pre('find', function (next) {
   this?.find({ secretTour: { $ne: true } });
   // this.start = Date.now();
   next();
 });
-// tourSchema.post(/^find/, function (docs, next) {
-//   if (this?.start) console.log('query took (in ms): ', Date.now() - this.start);
-//   next();
-// });
 
-// tourSchema.pre('aggregate', function (next) {
-//   this.pipeline().unshift({
-//     $match: { secretTour: { $ne: true } },
-//   });
-//   next();
-// });
 tourSchema.post('save', function (doc, next) {
   next();
 });

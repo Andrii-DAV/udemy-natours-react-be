@@ -12,17 +12,34 @@ import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import hpp from 'hpp';
 import cors from 'cors';
+import * as path from 'node:path';
+import viewRouter from './routes/viewRoutes';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const xss = require('xss-clean');
 
 const app = express();
 
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+app.use(express.static(path.join(`${__dirname}/../`, 'public')));
+
+const scriptSrcUrls = ['https://unpkg.com/', 'https://tile.openstreetmap.org'];
+
 // Set security HTTP headers
-app.use(helmet());
-
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSources: ["'self'", 'ws://localhost:1234'],
+      scriptSrc: ["'self'", 'connect-src: wss:', ...scriptSrcUrls],
+      imgSrc: ["'self'", 'blob:', 'data:', 'https:'],
+    },
+  }),
+);
 app.use(cors());
-
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 dotenv.config({ path: './.env' });
 
 if (process.env.NODE_ENV === 'development') {
@@ -60,12 +77,13 @@ app.use(
   }),
 );
 
-app.use(express.static(`${__dirname}/../public`));
 app.use(cookieParser());
 
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
-app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/users', userRouter);
+
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.url}`, 404));
 });
