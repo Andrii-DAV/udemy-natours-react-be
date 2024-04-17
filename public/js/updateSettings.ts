@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { showAlert } from './alerts';
 import axios from 'axios';
 
@@ -11,10 +12,12 @@ type PasswordProps = {
   oldPassword: string;
   passwordConfirm: string;
 };
-type Data = UserInfoProps | PasswordProps;
+export type Data = UserInfoProps | PasswordProps | FormData;
 
 export const updateSettings = async (data: Data, type: Settings) => {
   try {
+    console.log(data, 'data');
+
     const {
       data: { status },
     } = await axios({

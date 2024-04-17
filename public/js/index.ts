@@ -1,7 +1,7 @@
 import '@babel/polyfill';
 import { login, logout } from './login';
 import { displayMap } from './mapbox';
-import { updateSettings } from './updateSettings';
+import { Data, updateSettings } from './updateSettings';
 
 const mapBox = document.getElementById('map');
 const loginForm = document.querySelector('.form--login');
@@ -32,20 +32,44 @@ if (logoutBtn) {
 }
 
 if (saveSettingsForm) {
+  saveSettingsForm
+    .querySelector('#photo')
+    .addEventListener('change', (evt: Event) => {
+      const tgt = evt.target as HTMLInputElement;
+      const { files } = tgt;
+
+      if (FileReader && files && files.length) {
+        const fr = new FileReader();
+        fr.onload = function () {
+          const imageEl = saveSettingsForm.querySelector(
+            '.form__user-photo',
+          ) as HTMLImageElement;
+
+          if (imageEl) {
+            imageEl.src = fr.result as string;
+          }
+        };
+        fr.readAsDataURL(files[0]);
+      }
+    });
+
   saveSettingsForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = (saveSettingsForm.querySelector('#email') as HTMLInputElement)
-      .value;
-    const name = (saveSettingsForm.querySelector('#name') as HTMLInputElement)
-      .value;
-
-    await updateSettings(
-      {
-        email,
-        name,
-      },
-      'userInfo',
+    const form = new FormData();
+    form.append(
+      'email',
+      (saveSettingsForm.querySelector('#email') as HTMLInputElement).value,
     );
+    form.append(
+      'name',
+      (saveSettingsForm.querySelector('#name') as HTMLInputElement).value,
+    );
+    form.append(
+      'photo',
+      (saveSettingsForm.querySelector('#photo') as HTMLInputElement).files[0],
+    );
+
+    await updateSettings(form, 'userInfo');
   });
 }
 

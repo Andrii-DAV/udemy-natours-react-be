@@ -1,4 +1,7 @@
-export const filteredPropsOfObj = (obj: Object, ...allowedFields: string[]) => {
+export const filteredPropsOfObj = (
+  obj: NonNullable<unknown>,
+  ...allowedFields: string[]
+) => {
   return Object.entries(obj).reduce((acc, [key, value]) => {
     if (allowedFields.includes(key)) {
       // @ts-ignore

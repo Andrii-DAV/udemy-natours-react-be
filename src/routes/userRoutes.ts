@@ -8,6 +8,8 @@ import {
   deleteCurrentUser,
   getCurrentUser,
   setCurrentUserId,
+  uploadUserPhoto,
+  resizeUserPhoto,
 } from '../controllers/userController';
 import {
   forgotPassword,
@@ -32,7 +34,9 @@ userRouter.use(protect);
 
 userRouter.patch('/updatePassword', updatePassword);
 userRouter.get('/profile', setCurrentUserId, getCurrentUser);
-userRouter.route('/updateCurrentUser').patch(updateCurrentUser);
+userRouter
+  .route('/updateCurrentUser')
+  .patch(uploadUserPhoto, resizeUserPhoto, updateCurrentUser);
 userRouter.route('/deleteCurrentUser').delete(deleteCurrentUser);
 
 userRouter.use(restrictTo('admin'));
