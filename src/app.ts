@@ -14,6 +14,7 @@ import hpp from 'hpp';
 import cors from 'cors';
 import * as path from 'node:path';
 import viewRouter from './routes/viewRoutes';
+import bookingRouter from './routes/bookingRoutes';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const xss = require('xss-clean');
@@ -25,16 +26,36 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.static(path.join(`${__dirname}/../`, 'public')));
 
-const scriptSrcUrls = ['https://unpkg.com/', 'https://tile.openstreetmap.org'];
+const scriptSrcUrls = [
+  'https://unpkg.com',
+  'https://tile.openstreetmap.org',
+  'https://js.stripe.com',
+];
+const styleSrcUrls = [
+  'https://unpkg.com/',
+  'https://tile.openstreetmap.org',
+  'https://fonts.googleapis.com/',
+];
+const connectSrcUrls = ['https://unpkg.com', 'https://tile.openstreetmap.org'];
+const fontSrcUrls = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 // Set security HTTP headers
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
-      defaultSrc: ["'self'"],
-      connectSources: ["'self'", 'ws://localhost:1234'],
-      scriptSrc: ["'self'", 'connect-src: wss:', ...scriptSrcUrls],
+      defaultSrc: [],
+      connectSrc: ["'self'", ...connectSrcUrls],
+      scriptSrc: ["'self'", ...scriptSrcUrls],
+      styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
+      workerSrc: ["'self'", 'blob:'],
+      objectSrc: [],
       imgSrc: ["'self'", 'blob:', 'data:', 'https:'],
+      fontSrc: ["'self'", ...fontSrcUrls],
+      connectSources: [
+        "'self'",
+        'ws://localhost:1234',
+        'https://api.stripe.com',
+      ],
     },
   }),
 );
@@ -83,6 +104,7 @@ app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/bookings', bookingRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.url}`, 404));

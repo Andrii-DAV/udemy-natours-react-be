@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Query } from 'mongoose';
 import Tour from './tourModel';
 
 interface IReview {
@@ -7,6 +7,11 @@ interface IReview {
   createdAt: Date;
   tour: mongoose.Schema.Types.ObjectId;
   user: mongoose.Schema.Types.ObjectId;
+  r?: IReview;
+  constructor: {
+    calcAverageRatings?: (val: mongoose.Schema.Types.ObjectId) => Promise<void>;
+  };
+  // clone: () => Model<ReviewDocument>;
 }
 
 const reviewSchema = new mongoose.Schema(
@@ -43,11 +48,8 @@ const reviewSchema = new mongoose.Schema(
 
 reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
 
-reviewSchema.pre(/^find/, function (next) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
-  this.populate({ path: 'user', select: 'name photo' });
-
+reviewSchema.pre(/^find/, async function (this: Document<IReview>, next) {
+  await this.populate({ path: 'user', select: 'name photo' });
   next();
 });
 
@@ -75,22 +77,19 @@ reviewSchema.statics.calcAverageRatings = async function (
   });
 };
 
-reviewSchema.post('save', function () {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
-  this.constructor.calcAverageRatings(this.tour);
+reviewSchema.post('save', async function (this: IReview & Document) {
+  await this.constructor.calcAverageRatings(this.tour);
 });
 
-reviewSchema.pre(/^findOneAnd/, async function (next) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
-  this.r = await this.clone().findOne();
-  next();
-});
+reviewSchema.pre(
+  /^findOneAnd/,
+  async function (this: IReview & Query<IReview, IReview>, next) {
+    this.r = await this.clone().findOne();
+    next();
+  },
+);
 
-reviewSchema.post(/^findOneAnd/, async function () {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
+reviewSchema.post(/^findOneAnd/, async function (this: IReview & Document) {
   await this.r.constructor.calcAverageRatings(this.r.tour);
 });
 

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 import slugify from 'slugify';
 
 export interface ITour {
@@ -18,9 +18,9 @@ export interface ITour {
   startDates?: string[];
   createdAt: string;
   secretTour: boolean;
-
   start?: string;
 }
+
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -136,33 +136,18 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
-//DOCUMENT MIDDLEWARE: runs before .save() and .create()
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
-tourSchema.pre(/^find/, function (next) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
-  this.populate({
+tourSchema.pre(/^find/, async function (this: Document<ITour>, next) {
+  await this.populate({
     path: 'guides',
     select: '-__v -passwordChangedAt',
   });
-
   next();
 });
 
-tourSchema.pre('find', function (next) {
-  this?.find({ secretTour: { $ne: true } });
-  // this.start = Date.now();
-  next();
-});
-
-tourSchema.post('save', function (doc, next) {
-  next();
-});
-
-//Virtual populate
 tourSchema.virtual('reviews', {
   ref: 'Review',
   foreignField: 'tour',

@@ -2,7 +2,7 @@ import User, { IUser, type MongooseId, UserRole } from '../models/userModel';
 import { catchAsync } from '../utils/catchAsync';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import AppError from '../utils/appError';
-import { sendEmail } from '../utils/email';
+import { Email, sendEmail } from '../utils/email';
 import * as crypto from 'crypto';
 import express from 'express';
 
@@ -61,6 +61,8 @@ export const signup = catchAsync(async (req, res, next) => {
     passwordConfirm,
   });
 
+  const url = `${req.protocol}://${req.get('host')}/me`;
+  await new Email(newUser, url).sendWelcome();
   createSendToken(newUser, 201, res);
 });
 
@@ -167,15 +169,8 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     'host',
   )}/api/v1/users/resetPassword/${resetToken}`;
 
-  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.
-  If you didn't forget your password, please ignore this email!`;
-
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Your password reset token (valid for 10 minutes)',
-      message,
-    });
+    await new Email(user, resetURL).sendPasswordReset();
 
     res.status(200).json({
       status: 'success',

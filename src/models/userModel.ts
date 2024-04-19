@@ -1,10 +1,11 @@
-import mongoose, { Types } from 'mongoose';
+import mongoose, { Types, Model } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 
 export type UserRole = 'user' | 'guide' | 'lead-guide' | 'admin';
 export type MongooseId = Types.ObjectId;
+
 export interface IUser {
   name: string;
   _id: MongooseId;
@@ -17,10 +18,7 @@ export interface IUser {
   passwordResetToken?: string;
   passwordResetExpires?: Date;
   active: boolean;
-
-  //methods
   createPasswordResetToken: () => string;
-  // eslint-disable-next-line no-unused-vars
   correctPassword: (candidatePassword: string, userPassword: string) => boolean;
 }
 
@@ -87,8 +85,7 @@ userSchema.pre('save', function (next) {
   this.passwordChangedAt = new Date(Date.now() - 1000);
   next();
 });
-userSchema.pre(/^find/, function (next) {
-  // @ts-ignore
+userSchema.pre(/^find/, function (this: Model<IUser>, next) {
   this.find({ active: { $ne: false } });
   next();
 });
@@ -97,7 +94,6 @@ userSchema.methods.correctPassword = async function (
   candidatePassword: string,
   userPassword: string,
 ) {
-  // this.password won't work because of the select: false.
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 

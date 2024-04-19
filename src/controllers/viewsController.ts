@@ -1,9 +1,20 @@
 import { catchAsync } from '../utils/catchAsync';
 import Tour from '../models/tourModel';
 import AppError from '../utils/appError';
-//
-// type ViewController = (req: express.Request, res: express.Response) => void;
+import Booking from '../models/bookingModel';
 
+export const getMyTours = catchAsync(async (req, res) => {
+  const bookings = await Booking.find({
+    user: req.user._id,
+  });
+  const tourIDs = bookings.map(({ tour }) => tour);
+  const tours = await Tour.find({ _id: { $in: tourIDs } });
+
+  res.status(200).render('overview', {
+    title: 'My Tours',
+    tours,
+  });
+});
 export const getAccount = catchAsync(async (req, res) => {
   res.status(200).render('account', {
     title: 'My account',

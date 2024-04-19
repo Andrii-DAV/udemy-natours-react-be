@@ -20,12 +20,6 @@ const upload = multer({
   fileFilter: multerFilter,
 });
 
-export const getAllUsers = getAll(User);
-export const getUser = getOne(User);
-export const updateUser = updateOne(User);
-export const deleteUser = deleteOne(User);
-export const getCurrentUser = getOne(User);
-
 export const uploadUserPhoto = upload.single('photo');
 export const resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) return next();
@@ -40,6 +34,12 @@ export const resizeUserPhoto = catchAsync(async (req, res, next) => {
     .toFile(`public/img/users/${req.file.filename}`);
   next();
 });
+
+export const getAllUsers = getAll(User);
+export const getUser = getOne(User);
+export const updateUser = updateOne(User);
+export const deleteUser = deleteOne(User);
+export const getCurrentUser = getOne(User);
 
 export const updateCurrentUser = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {

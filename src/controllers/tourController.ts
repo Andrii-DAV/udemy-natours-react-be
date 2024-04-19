@@ -9,6 +9,60 @@ import {
   updateOne,
 } from './handlerFactory';
 import AppError from '../utils/appError';
+import multer from 'multer';
+import sharp from 'sharp';
+
+const multerStorage = multer.memoryStorage();
+//@ts-ignore
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, file);
+  } else {
+    cb(new AppError('Not an image! Please upload only images', 400), false);
+  }
+};
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+export const uploadTourImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
+export const resizeTourImages = catchAsync(async (req, res, next) => {
+  // @ts-ignore
+  if (!req.files?.imageCover || !req.files?.images) return next();
+
+  const imageCoverFileName = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+
+  // @ts-ignore
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${imageCoverFileName}`);
+
+  req.body.images = [];
+
+  await Promise.all(
+    // @ts-ignore
+    req.files.images.map(async (file, index) => {
+      const fileName = `tour-${req.params.id}-${Date.now()}-${index + 1}.jpeg`;
+
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${fileName}`);
+
+      req.body.images.push(fileName);
+    }),
+  );
+
+  req.body.imageCover = imageCoverFileName;
+  next();
+});
 
 export const getAllTours = getAll(Tour);
 export const getTour = getOne(Tour, 'reviews');

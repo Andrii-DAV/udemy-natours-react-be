@@ -8,6 +8,7 @@ html
         meta(charset='UTF-8')
         meta(name='viewport' content='width=device-width, initial-scale=1.0')
 
+
     body
         include _header
 
@@ -15,4 +16,5 @@ html
             h1 This is a placeholder heading
 
         include _footer
-        script(src='/js/index.js' type='module')
+        script(src='https://js.stripe.com/v3/')
+        script(src='/js/index.js' defer)
