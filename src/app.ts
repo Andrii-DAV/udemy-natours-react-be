@@ -20,6 +20,11 @@ import bookingRouter from './routes/bookingRoutes';
 const xss = require('xss-clean');
 
 const app = express();
+app.use(
+  cors({
+    origin: 'http://localhost:5173',
+  }),
+);
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
@@ -63,7 +68,7 @@ app.use(
     },
   }),
 );
-app.use(cors());
+
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 dotenv.config({ path: './.env' });
 
