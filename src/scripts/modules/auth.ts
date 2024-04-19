@@ -1,4 +1,3 @@
-// /* eslint-disable */
 import axios from 'axios';
 import { showAlert } from './alerts';
 
@@ -38,5 +37,14 @@ export const logout = async () => {
     if ((res.data.status = 'success')) location.reload();
   } catch (err) {
     showAlert('error', 'Error logging out! Try again.');
+  }
+};
+
+export const initLogout = () => {
+  const logoutBtn = document.querySelector('.nav__el--logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      await logout();
+    });
   }
 };

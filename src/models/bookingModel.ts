@@ -1,4 +1,4 @@
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, Query } from 'mongoose';
 
 const bookingSchema = new mongoose.Schema({
   tour: {
@@ -24,9 +24,8 @@ const bookingSchema = new mongoose.Schema({
     default: true,
   },
 });
-bookingSchema.pre(/^find/, async function (this: Document, next) {
-  await this.populate('user');
-  await this.populate({
+bookingSchema.pre(/^find/, async function (next) {
+  (this as Query<any, any>).populate('user').populate({
     path: 'tour',
     select: 'name',
   });

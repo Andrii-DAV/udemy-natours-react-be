@@ -11,8 +11,9 @@ interface IReview {
   constructor: {
     calcAverageRatings?: (val: mongoose.Schema.Types.ObjectId) => Promise<void>;
   };
-  // clone: () => Model<ReviewDocument>;
 }
+
+type ThisReview = IReview & Query<any, any>;
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -48,8 +49,8 @@ const reviewSchema = new mongoose.Schema(
 
 reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
 
-reviewSchema.pre(/^find/, async function (this: Document<IReview>, next) {
-  await this.populate({ path: 'user', select: 'name photo' });
+reviewSchema.pre(/^find/, function (this, next) {
+  (this as any).populate({ path: 'user', select: 'name photo' });
   next();
 });
 
@@ -77,20 +78,20 @@ reviewSchema.statics.calcAverageRatings = async function (
   });
 };
 
-reviewSchema.post('save', async function (this: IReview & Document) {
-  await this.constructor.calcAverageRatings(this.tour);
+reviewSchema.post('save', async function () {
+  console.log('here? ');
+  await (this as any).constructor.calcAverageRatings((this as any).tour);
 });
 
-reviewSchema.pre(
-  /^findOneAnd/,
-  async function (this: IReview & Query<IReview, IReview>, next) {
-    this.r = await this.clone().findOne();
-    next();
-  },
-);
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  (this as ThisReview).r = await (this as ThisReview).clone().findOne();
+  next();
+});
 
-reviewSchema.post(/^findOneAnd/, async function (this: IReview & Document) {
-  await this.r.constructor.calcAverageRatings(this.r.tour);
+reviewSchema.post(/^findOneAnd/, function () {
+  (this as ThisReview).r.constructor.calcAverageRatings(
+    (this as ThisReview).r.tour,
+  );
 });
 
 const Review = mongoose.model('Review', reviewSchema);

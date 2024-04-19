@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 export const displayMap = (
   locations: { coordinates: any[]; day: any; description: any }[],
 ) => {
@@ -30,4 +28,13 @@ export const displayMap = (
   map.fitBounds(bounds);
 
   map.scrollWheelZoom.disable();
+};
+
+export const initMap = () => {
+  const mapBox = document.querySelector('#map');
+
+  if (mapBox) {
+    const locations = JSON.parse((mapBox as HTMLElement).dataset.locations);
+    displayMap(locations);
+  }
 };

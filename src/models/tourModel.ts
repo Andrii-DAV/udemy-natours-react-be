@@ -1,4 +1,4 @@
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, Query } from 'mongoose';
 import slugify from 'slugify';
 
 export interface ITour {
@@ -140,8 +140,8 @@ tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
-tourSchema.pre(/^find/, async function (this: Document<ITour>, next) {
-  await this.populate({
+tourSchema.pre(/^find/, function (next) {
+  (this as Query<any, any>).populate({
     path: 'guides',
     select: '-__v -passwordChangedAt',
   });

@@ -85,8 +85,8 @@ userSchema.pre('save', function (next) {
   this.passwordChangedAt = new Date(Date.now() - 1000);
   next();
 });
-userSchema.pre(/^find/, function (this: Model<IUser>, next) {
-  this.find({ active: { $ne: false } });
+userSchema.pre(/^find/, function (next) {
+  (this as any).find({ active: { $ne: false } });
   next();
 });
 

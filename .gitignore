@@ -3,5 +3,4 @@ node_modules
 .env
 .parcel-cache
 
-public/js/index.js
-public/js/index.js.map
+public/js/
