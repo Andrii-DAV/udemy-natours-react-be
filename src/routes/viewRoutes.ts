@@ -6,15 +6,14 @@ import {
   getOverview,
   getTour,
   redirectIfLogged,
-  redirectToLogin,
 } from '../controllers/viewsController';
 import { isLoggedIn, protect } from '../controllers/authController';
 import { createBookingCheckout } from '../controllers/bookingController';
 
 const viewRouter = express.Router();
 
-viewRouter.get('/me', protect, redirectToLogin, getAccount);
-viewRouter.get('/my-tours', redirectToLogin, protect, getMyTours);
+viewRouter.get('/me', protect, getAccount);
+viewRouter.get('/my-tours', protect, getMyTours);
 
 viewRouter.use(isLoggedIn);
 

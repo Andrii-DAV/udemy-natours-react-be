@@ -2,9 +2,10 @@ import User, { IUser, type MongooseId, UserRole } from '../models/userModel';
 import { catchAsync } from '../utils/catchAsync';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import AppError from '../utils/appError';
-import { Email, sendEmail } from '../utils/email';
+import { Email } from '../utils/email';
 import * as crypto from 'crypto';
 import express from 'express';
+import { getHeaderToken, REDIRECT_PROTECTED_PAGES } from '../utils/auth';
 
 const signToken = (id: MongooseId) =>
   jwt.sign(
@@ -51,7 +52,7 @@ const createSendToken = (
     token,
   });
 };
-export const signup = catchAsync(async (req, res, next) => {
+export const signup = catchAsync(async (req, res) => {
   const { name, email, password, passwordConfirm } = req.body;
 
   const newUser = await User.create({
@@ -74,7 +75,6 @@ export const login = catchAsync(async (req, res, next) => {
   }
 
   const user = await User.findOne({ email }).select('+password');
-  //@ts-ignore
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('incorrect email or password', 401));
   }
@@ -96,15 +96,16 @@ export const isLoggedIn = catchAsync(async (req, res, next) => {
   if (!req.cookies.jwt) {
     return next();
   }
-
-  //@ts-ignore
+  // eslint-disable-next-line
+  // @ts-ignore
   const { id, iat } = await jwtVerify(req.cookies.jwt, process.env.JWT_SECRET);
 
   const foundUser = await User.findById(id);
 
   if (!foundUser) return next();
 
-  //@ts-ignore
+  // eslint-disable-next-line
+  // @ts-ignore
   if (foundUser.changedPasswordAfter(iat)) return next();
 
   res.locals.user = foundUser;
@@ -112,17 +113,13 @@ export const isLoggedIn = catchAsync(async (req, res, next) => {
 });
 
 export const protect = catchAsync(async (req, res, next) => {
-  const { headers } = req;
-  let token;
-  if (headers.authorization && headers.authorization.startsWith('Bearer')) {
-    token = headers.authorization.split(' ')[1];
-  } else if (req.cookies?.jwt) {
-    token = req.cookies.jwt;
-  }
-
+  const token = getHeaderToken(req);
   if (!token) {
-    return next(new AppError('Please log in to get access.', 401));
+    return REDIRECT_PROTECTED_PAGES.includes(req.route.path)
+      ? res.redirect('/login')
+      : next(new AppError('Please log in to get access.', 401));
   }
+  // eslint-disable-next-line
   // @ts-ignore
   const { id, iat } = await jwtVerify(token, process.env.JWT_SECRET);
 
@@ -135,8 +132,8 @@ export const protect = catchAsync(async (req, res, next) => {
       ),
     );
   }
-
-  //@ts-ignore
+  // eslint-disable-next-line
+  // @ts-ignore
   if (foundUser.changedPasswordAfter(iat)) {
     return next(new AppError('User recently changed password!', 401));
   }

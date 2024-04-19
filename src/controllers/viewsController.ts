@@ -2,6 +2,7 @@ import { catchAsync } from '../utils/catchAsync';
 import Tour from '../models/tourModel';
 import AppError from '../utils/appError';
 import Booking from '../models/bookingModel';
+import { isAuthenticated } from '../utils/auth';
 
 export const redirectIfLogged = catchAsync(async (req, res, next) => {
   if (res.locals.user) {
@@ -10,7 +11,7 @@ export const redirectIfLogged = catchAsync(async (req, res, next) => {
   next();
 });
 export const redirectToLogin = catchAsync(async (req, res, next) => {
-  if (!req.cookies.jwt) {
+  if (!isAuthenticated(req)) {
     return res.redirect('/login');
   }
   next();
@@ -44,7 +45,7 @@ export const getOverview = catchAsync(async (req, res) => {
 });
 
 export const getLogin = catchAsync(async (req, res) => {
-  if (req.user) res.redirect('/');
+  if (req.user) return res.redirect('/');
 
   res.status(200).render('login', {
     title: 'Log into your account',

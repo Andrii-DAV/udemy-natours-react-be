@@ -9,9 +9,9 @@
   },
   "scripts": {
     "start": "nodemon",
+    "watch:js": " webpack --env development --watch",
     "start:prod": "set NODE_ENV=production & nodemon",
-    "debug": "ndb src/server.ts",
-    "watch:js": "webpack serve --open"
+    "debug": "ndb src/server.ts"
   },
   "author": "",
   "license": "ISC",
