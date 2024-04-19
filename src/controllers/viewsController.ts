@@ -3,6 +3,19 @@ import Tour from '../models/tourModel';
 import AppError from '../utils/appError';
 import Booking from '../models/bookingModel';
 
+export const redirectIfLogged = catchAsync(async (req, res, next) => {
+  if (res.locals.user) {
+    return res.redirect('/');
+  }
+  next();
+});
+export const redirectToLogin = catchAsync(async (req, res, next) => {
+  if (!req.cookies.jwt) {
+    return res.redirect('/login');
+  }
+  next();
+});
+
 export const getMyTours = catchAsync(async (req, res) => {
   const bookings = await Booking.find({
     user: req.user._id,
@@ -31,6 +44,8 @@ export const getOverview = catchAsync(async (req, res) => {
 });
 
 export const getLogin = catchAsync(async (req, res) => {
+  if (req.user) res.redirect('/');
+
   res.status(200).render('login', {
     title: 'Log into your account',
   });
